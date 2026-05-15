@@ -454,8 +454,8 @@ vmfault(pagetable_t pagetable, uint64 va, int read)
 {
   uint64 mem;
   struct proc *p = myproc();
-
-  if (va >= p->sz)
+//protects against: null pointer access ,kernel memory access ,invalid addresses
+  if (va >= p->sz || va < PGSIZE || va >= MAXVA)
     return 0;
   va = PGROUNDDOWN(va);
   if(ismapped(pagetable, va)) {
@@ -468,8 +468,16 @@ vmfault(pagetable_t pagetable, uint64 va, int read)
   if (mappages(p->pagetable, va, PGSIZE, mem, PTE_W|PTE_U|PTE_R) != 0) {
     kfree((void *)mem);
     return 0;
-  }
-  return mem;
+}
+
+p->lazy_allocs++;
+
+printf("lazy alloc: pid=%d va=0x%lx\n",
+       p->pid,
+       va);
+
+return mem;
+//added: lazy-allocation counting , cleaner fault handling ,invalid-fault detection
 }
 
 int
