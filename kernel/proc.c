@@ -351,10 +351,13 @@ kexit(int status)
   wakeup(p->parent);
   
   acquire(&p->lock);
-
   p->xstate = status;
   p->state = ZOMBIE;
-
+  printf("pid %d stats: page_faults=%d lazy_allocs=%d\n",
+       p->pid,
+       p->pagefaults,
+       p->lazy_allocs);
+//added: print page faults + lazy allocs
   release(&wait_lock);
 
   // Jump into the scheduler, never to return.
